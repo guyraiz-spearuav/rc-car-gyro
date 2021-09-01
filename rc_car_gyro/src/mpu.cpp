@@ -5,13 +5,15 @@
 
 MPU6050 mpu6050(Wire);
 
-
-void mpu_setup() {
+void mpu_setup()
+{
   Wire.begin();
   mpu6050.begin();
   mpu6050.calcGyroOffsets(true);
 }
 
-void mpu_do(){
-mpu6050.getGyroZ();
+int mpu_get_rate()
+{
+  mpu6050.update();
+  return (mpu6050.getGyroZ());
 }

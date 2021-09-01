@@ -1,7 +1,7 @@
-#ifndef _PID_H
-#define _PID_H
+#ifndef _CONTROL_H
+#define _CONTROL_H
 
 
-void pid_setup();
-void pid_do();
+void control_setup();
+void pass_values_to_control(double rotational_rate, int steering_in_value, int throttle_in_value, bool aux_in_value);
 #endif

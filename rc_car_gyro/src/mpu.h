@@ -3,5 +3,5 @@
 
 
 void mpu_setup();
-void mpu_do();
+int mpu_get_rate();
 #endif

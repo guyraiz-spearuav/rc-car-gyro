@@ -3,5 +3,6 @@
 
 
 void output_setup();
-void output_do();
+void update_output(int steering_output, int throttle_output);
+
 #endif
