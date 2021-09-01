@@ -24,6 +24,7 @@ PID steeringPID(&input, &output, &setpoint, Kp, Ki, Kd, DIRECT);
 int my_rotational_rate;
 int my_steering_value;
 int my_throttle_value;
+int my_aux_value;
 bool my_control_active;
 bool my_failsafe;
 
@@ -43,13 +44,14 @@ void pass_values_to_control(double rotational_rate, int steering_in_value, int t
   my_rotational_rate = map_to_viable_rate_value(rotational_rate);
   my_steering_value = map_to_viable_pwm_value(steering_in_value);
   my_throttle_value = map_to_viable_pwm_value(throttle_in_value);
-  my_control_active = aux_in_value;
+  my_aux_value = aux_in_value;
   my_failsafe = failsafe;
   control_do();
 }
 
 void control_do()
 {
+  my_control_active = my_aux_value > 1500;
   if (my_control_active)
   {
     input = double(my_rotational_rate);
