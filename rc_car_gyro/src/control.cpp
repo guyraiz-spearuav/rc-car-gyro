@@ -25,6 +25,7 @@ int my_rotational_rate;
 int my_steering_value;
 int my_throttle_value;
 bool my_control_active;
+bool my_failsafe;
 
 int steering_output;
 int throttle_output;
@@ -37,26 +38,35 @@ void control_setup()
   steeringPID.SetMode(AUTOMATIC);
 }
 
-void pass_values_to_control(double rotational_rate, int steering_in_value, int throttle_in_value, bool aux_in_value)
+void pass_values_to_control(double rotational_rate, int steering_in_value, int throttle_in_value, bool aux_in_value, bool failsafe)
 {
   my_rotational_rate = map_to_viable_rate_value(rotational_rate);
   my_steering_value = map_to_viable_pwm_value(steering_in_value);
   my_throttle_value = map_to_viable_pwm_value(throttle_in_value);
   my_control_active = aux_in_value;
+  my_failsafe = failsafe;
   control_do();
 }
 
 void control_do()
 {
-  if(my_control_active){
-  input = double(my_rotational_rate);
-  setpoint = double(my_steering_value);
-  steeringPID.Compute();
-  steering_output = output;
-  }else{
-  steering_output = my_steering_value;
+  if (my_control_active)
+  {
+    input = double(my_rotational_rate);
+    setpoint = double(my_steering_value);
+    steeringPID.Compute();
+    steering_output = output;
+  }
+  else
+  {
+    steering_output = my_steering_value;
   }
   throttle_output = my_throttle_value;
+  if (my_failsafe)
+  {
+    steering_output = 0;
+    throttle_output = 0;
+  }
   update_output(steering_output, throttle_output);
 }
 
