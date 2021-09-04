@@ -1,5 +1,5 @@
 #include <Arduino.h>
-#include "input.h"
+#include "input_pwm.h"
 #include "mpu.h"
 #include "control.h"
 
@@ -40,7 +40,7 @@ int rotational_rate;
 int aux_in_value;
 bool failsafe;
 
-void input_setup()
+void input_pwm_setup()
 {
   pinMode(STEERING_IN_PIN, INPUT);
   pinMode(THROTTLE_IN_PIN, INPUT);
@@ -56,7 +56,7 @@ void input_setup()
                   CHANGE);
 }
 
-void input_do()
+void input_pwm_do()
 {
   if (steering_pulse_available)
   {
