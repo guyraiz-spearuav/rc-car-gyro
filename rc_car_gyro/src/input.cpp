@@ -11,7 +11,7 @@ void aux_pin_interrupt();
 const int STEERING_IN_PIN = 4;
 const int THROTTLE_IN_PIN = 5;
 const int AUX_IN_PIN = 6;
-const int PULSEIN_TIMEOUT = 30000;
+const int PULSEIN_TIMEOUT = 30;
 
 volatile long unsigned int steering_pulse_begin;
 volatile long unsigned int steering_pulse_end;
