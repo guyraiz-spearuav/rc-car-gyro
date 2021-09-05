@@ -36,8 +36,11 @@ const int MAX_SIG_TO_CONTROL = 2200;
 
 int steering_in_value;
 int throttle_in_value;
-int rotational_rate;
 int aux_in_value;
+int steering_out_value;
+int throttle_out_value;
+int aux_out_value;
+int rotational_rate;
 bool failsafe;
 
 void input_pwm_setup()
@@ -96,16 +99,16 @@ void input_pwm_do()
   if (aux_in_value < min_sig_from_rc_aux && !failsafe)
     min_sig_from_rc_aux = aux_in_value;
 
-  steering_in_value = map_to_regulated_values(steering_in_value, min_sig_from_rc_steering, max_sig_from_rc_steering);
-  throttle_in_value = map_to_regulated_values(throttle_in_value, min_sig_from_rc_throttle, max_sig_from_rc_throttle);
-  aux_in_value = map_to_regulated_values(aux_in_value, min_sig_from_rc_aux, max_sig_from_rc_aux);
+  steering_out_value = map_to_regulated_values(steering_in_value, min_sig_from_rc_steering, max_sig_from_rc_steering);
+  throttle_out_value = map_to_regulated_values(throttle_in_value, min_sig_from_rc_throttle, max_sig_from_rc_throttle);
+  aux_out_value = map_to_regulated_values(aux_in_value, min_sig_from_rc_aux, max_sig_from_rc_aux);
   rotational_rate = mpu_get_rate();
-  pass_values_to_control(rotational_rate, steering_in_value, throttle_in_value, aux_in_value, failsafe);
-Serial.print(steering_in_value);
-Serial.print("   ");
-Serial.print(throttle_in_value);
-Serial.print("   ");
-Serial.println(aux_in_value);
+  pass_values_to_control(rotational_rate, steering_out_value, throttle_out_value, aux_out_value, failsafe);
+  Serial.print(min_sig_from_rc_throttle);
+  Serial.print("   ");
+  Serial.print(max_sig_from_rc_throttle);
+  Serial.print("   ");
+  Serial.println(throttle_out_value);
 }
 
 int map_to_regulated_values(int value, int min, int max)
