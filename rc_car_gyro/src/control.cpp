@@ -17,9 +17,11 @@ const int MIN_INPUT_PPM_US = 800;
 const int MAX_INPUT_PPM_US = 2200;
 
 double setpoint, input, output;
-double Kp = 1, Ki = 0, Kd = 0;
+double my_Kp;
+double my_Ki;
+double my_Kd;
 
-PID steeringPID(&input, &output, &setpoint, Kp, Ki, Kd, DIRECT);
+PID steeringPID(&input, &output, &setpoint, my_Kp, my_Ki, my_Kd, DIRECT);
 
 int my_rotational_rate;
 int my_steering_value;
@@ -31,6 +33,11 @@ bool my_failsafe;
 int steering_output;
 int throttle_output;
 
+void pass_pid_values(double Kp, double Ki, double Kd){
+  my_Kp = Kp / 100;
+  my_Ki = Ki / 100;
+  my_Kd = Kd / 100;
+}
 void control_setup()
 {
   setpoint = 0;

@@ -2,6 +2,7 @@
 #include <EEPROM.h>
 #include "pid_tune.h"
 #include "input_sbus.h"
+#include "control.h"
 
 int get_form_eeprom(int address);
 int constrain_value_to_byte(int value);
@@ -44,6 +45,7 @@ void pid_tune_setup()
     my_Kp_value = get_form_eeprom(KP_ADDRESS);
     my_Ki_value = get_form_eeprom(KI_ADDRESS);
     my_Kd_value = get_form_eeprom(KD_ADDRESS);
+    pass_pid_values(my_Kp_value, my_Ki_value, my_Kd_value);
 }
 
 void pid_tune_do()
@@ -51,6 +53,7 @@ void pid_tune_do()
     if (my_tuning == TUNE_DOWN && millis() - tune_timer > TUNE_TIMEOUT)
     {
         tune_down();
+        pass_pid_values(my_Kp_value, my_Ki_value, my_Kd_value);
         tune_timer = millis();
     }
     if (my_tuning == TUNE_NEUTRAL)
@@ -58,6 +61,7 @@ void pid_tune_do()
     if (my_tuning == TUNE_UP && millis() - tune_timer > TUNE_TIMEOUT)
     {
         tune_up();
+        pass_pid_values(my_Kp_value, my_Ki_value, my_Kd_value);
         tune_timer = millis();
     }
 

@@ -17,6 +17,7 @@ const int STORE_CH = 0;
 const int SELECTION_CH = 1;
 const int TUNING_CH = 2;
 
+bool presence;
 bool store_ch_value;
 int selection_ch_value;
 int tuning_ch_value;
@@ -36,6 +37,7 @@ void input_sbus_do()
 {
   if (rxsr.read(&channels[0], &failSafe, &lostFrame))
   {
+    presence = !failSafe && channels[STORE_CH] > FIRST_RANGE_MIN_US;
     store_ch_value = channels[STORE_CH] > MID_VALUE_US;
     if (channels[SELECTION_CH] > SECOND_BARRIER_US)
       selection_ch_value = KP_SELECTION;
@@ -50,5 +52,6 @@ void input_sbus_do()
     else
       tuning_ch_value = TUNE_UP;
   }
-  pass_values_to_pid_tune(store_ch_value, selection_ch_value, tuning_ch_value);
+  if (!presence)
+    pass_values_to_pid_tune(store_ch_value, selection_ch_value, tuning_ch_value);
 }
