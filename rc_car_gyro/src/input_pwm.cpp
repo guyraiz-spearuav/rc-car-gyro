@@ -104,11 +104,6 @@ void input_pwm_do()
   aux_out_value = map_to_regulated_values(aux_in_value, min_sig_from_rc_aux, max_sig_from_rc_aux);
   rotational_rate = mpu_get_rate();
   pass_values_to_control(rotational_rate, steering_out_value, throttle_out_value, aux_out_value, failsafe);
-  Serial.print(min_sig_from_rc_throttle);
-  Serial.print("   ");
-  Serial.print(max_sig_from_rc_throttle);
-  Serial.print("   ");
-  Serial.println(throttle_out_value);
 }
 
 int map_to_regulated_values(int value, int min, int max)
