@@ -15,8 +15,10 @@ void setup() {
   control_setup();
   output_setup();
   pid_tune_setup();
+  input_sbus_setup();
 }
 
 void loop() {
   input_pwm_do();
+  input_sbus_do();
 }

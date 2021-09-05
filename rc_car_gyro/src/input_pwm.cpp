@@ -11,7 +11,7 @@ void aux_pin_interrupt();
 const int STEERING_IN_PIN = 4;
 const int THROTTLE_IN_PIN = 5;
 const int AUX_IN_PIN = 6;
-const int PULSEIN_TIMEOUT = 30;
+const int PULSEIN_TIMEOUT = 100;
 
 volatile long unsigned int steering_pulse_begin;
 volatile long unsigned int steering_pulse_end;
@@ -60,24 +60,24 @@ void input_pwm_do()
 {
   if (steering_pulse_available)
   {
-    steering_in_value = steering_pulse_begin - steering_pulse_end;
+    steering_in_value = steering_pulse_end - steering_pulse_begin;
     steering_pulse_available = false;
   }
   if (throttle_pulse_available)
   {
-    throttle_in_value = throttle_pulse_begin - throttle_pulse_end;
+    throttle_in_value = throttle_pulse_end - throttle_pulse_begin;
     throttle_pulse_available = false;
   }
   if (aux_pulse_available)
   {
-    aux_in_value = aux_pulse_begin - aux_pulse_end;
+    aux_in_value = aux_pulse_end - aux_pulse_begin;
     aux_pulse_available = false;
   }
-  if (millis() - PULSEIN_TIMEOUT > steering_pulse_begin / 1000)
+  if ((millis() - PULSEIN_TIMEOUT) > (steering_pulse_end / 1000))
     steering_in_value = 0;
-  if (millis() - PULSEIN_TIMEOUT > throttle_pulse_begin / 1000)
+  if ((millis() - PULSEIN_TIMEOUT) > (throttle_pulse_end / 1000))
     throttle_in_value = 0;
-  if (millis() - PULSEIN_TIMEOUT > aux_pulse_begin / 1000)
+  if ((millis() - PULSEIN_TIMEOUT) > (aux_pulse_end / 1000))
     aux_in_value = 0;
   if (steering_in_value == 0 || throttle_in_value == 0 || aux_in_value == 0)
     failsafe = true;
@@ -101,6 +101,11 @@ void input_pwm_do()
   aux_in_value = map_to_regulated_values(aux_in_value, min_sig_from_rc_aux, max_sig_from_rc_aux);
   rotational_rate = mpu_get_rate();
   pass_values_to_control(rotational_rate, steering_in_value, throttle_in_value, aux_in_value, failsafe);
+Serial.print(steering_in_value);
+Serial.print("   ");
+Serial.print(throttle_in_value);
+Serial.print("   ");
+Serial.println(aux_in_value);
 }
 
 int map_to_regulated_values(int value, int min, int max)
@@ -110,7 +115,7 @@ int map_to_regulated_values(int value, int min, int max)
 
 void steering_pin_interrupt()
 {
-  if (STEERING_IN_PIN)
+  if (digitalRead(STEERING_IN_PIN))
   {
     steering_pulse_begin = micros();
   }
@@ -123,7 +128,7 @@ void steering_pin_interrupt()
 
 void throttle_pin_interrupt()
 {
-  if (THROTTLE_IN_PIN)
+  if (digitalRead(THROTTLE_IN_PIN))
   {
     throttle_pulse_begin = micros();
   }
@@ -136,7 +141,7 @@ void throttle_pin_interrupt()
 
 void aux_pin_interrupt()
 {
-  if (AUX_IN_PIN)
+  if (digitalRead(AUX_IN_PIN))
   {
     aux_pulse_begin = micros();
   }
