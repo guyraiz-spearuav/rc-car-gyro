@@ -17,9 +17,9 @@ const int MIN_INPUT_PPM_US = 800;
 const int MAX_INPUT_PPM_US = 2200;
 
 double setpoint, input, output;
-double my_Kp;
-double my_Ki;
-double my_Kd;
+double my_Kp = 1;
+double my_Ki = 0;
+double my_Kd = 0;
 
 PID steeringPID(&input, &output, &setpoint, my_Kp, my_Ki, my_Kd, DIRECT);
 
@@ -33,7 +33,8 @@ bool my_failsafe;
 int steering_output;
 int throttle_output;
 
-void pass_pid_values(double Kp, double Ki, double Kd){
+void pass_pid_values(double Kp, double Ki, double Kd)
+{
   my_Kp = Kp / 100;
   my_Ki = Ki / 100;
   my_Kd = Kd / 100;
@@ -46,7 +47,7 @@ void control_setup()
   steeringPID.SetMode(AUTOMATIC);
 }
 
-void pass_values_to_control(double rotational_rate, int steering_in_value, int throttle_in_value, bool aux_in_value, bool failsafe)
+void pass_values_to_control(double rotational_rate, int steering_in_value, int throttle_in_value, int aux_in_value, bool failsafe)
 {
   my_rotational_rate = map_to_viable_rate_value(rotational_rate);
   my_steering_value = map_to_viable_pwm_value(steering_in_value);
@@ -54,6 +55,7 @@ void pass_values_to_control(double rotational_rate, int steering_in_value, int t
   my_aux_value = aux_in_value;
   my_failsafe = failsafe;
   control_do();
+  Serial.println(aux_in_value);
 }
 
 void control_do()
