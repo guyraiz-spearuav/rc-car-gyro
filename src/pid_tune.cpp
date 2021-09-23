@@ -3,33 +3,29 @@
 #include "pid_tune.h"
 #include "input_sbus.h"
 #include "control.h"
+#include "buzzer.h"
 
-int get_form_eeprom(int address);
-int constrain_value_to_byte(int value);
-void tune_up();
-void tune_down();
+int get_from_eeprom(int address);
+void constrain_value_to_byte();
+void tune(int my_selection, int my_tuning);
 void store_values_to_eeprom();
 
 const int BYTE_VALUE_MIN = 0;
 const int BYTE_VALUE_MAX = 255;
-const int KP_ADDRESS = 0;
-const int KI_ADDRESS = 1;
-const int KD_ADDRESS = 2;
-const int KP_SELECT = 0;
-const int KI_SELECT = 1;
-const int KD_SELECT = 2;
-const int TUNE_DOWN = 0;
-const int TUNE_NEUTRAL = 1;
-const int TUNE_UP = 2;
-const int TUNE_TIMEOUT = 500;
+const int PID_ADDRESS[3] = {0, 1, 2};
+const int PID_SELECT[3] = {0, 1, 2};
+const int TUNE_DOWN = 1;
+const int TUNE_NEUTRAL = 0;
+const int TUNE_UP = -1;
+const int TUNE_TIMEOUT = 250;
+const int SHORT = 0;
+const int LONG = 1;
 
-int my_Kp_value;
-int my_Ki_value;
-int my_Kd_value;
+double my_pid[3];
 bool my_store;
 bool store_previous;
-bool my_selection;
-bool my_tuning;
+int my_selection;
+int my_tuning;
 long unsigned int tune_timer = 0;
 
 void pass_values_to_pid_tune(bool store_ch_value, int selection_ch_value, int tuning_ch_value)
@@ -42,70 +38,57 @@ void pass_values_to_pid_tune(bool store_ch_value, int selection_ch_value, int tu
 
 void pid_tune_setup()
 {
-    my_Kp_value = get_form_eeprom(KP_ADDRESS);
-    my_Ki_value = get_form_eeprom(KI_ADDRESS);
-    my_Kd_value = get_form_eeprom(KD_ADDRESS);
-    pass_pid_values(my_Kp_value, my_Ki_value, my_Kd_value);
+    for (int i = 0; i <= 2; i++)
+    {
+        my_pid[i] = get_from_eeprom(PID_ADDRESS[i]);
+    }
+    pass_pid_values(my_pid[0], my_pid[1], my_pid[2]);
 }
 
 void pid_tune_do()
 {
-    if (my_tuning == TUNE_DOWN && millis() - tune_timer > TUNE_TIMEOUT)
-    {
-        tune_down();
-        pass_pid_values(my_Kp_value, my_Ki_value, my_Kd_value);
-        tune_timer = millis();
-    }
     if (my_tuning == TUNE_NEUTRAL)
         tune_timer = millis();
-    if (my_tuning == TUNE_UP && millis() - tune_timer > TUNE_TIMEOUT)
+    else if (millis() - tune_timer > TUNE_TIMEOUT)
     {
-        tune_up();
-        pass_pid_values(my_Kp_value, my_Ki_value, my_Kd_value);
+        tune(my_selection, my_tuning);
+        pass_pid_values(my_pid[0], my_pid[1], my_pid[2]);
         tune_timer = millis();
+        buzz(SHORT, 1);
     }
 
-    my_Kp_value = constrain_value_to_byte(my_Kp_value);
-    my_Ki_value = constrain_value_to_byte(my_Ki_value);
-    my_Kd_value = constrain_value_to_byte(my_Kd_value);
-
     if (my_store && my_store != store_previous)
+    {
         store_values_to_eeprom();
+        buzz(LONG, 3);
+    }
     store_previous = my_store;
+    buzzer_do();
 }
 
-void tune_down()
+void tune(int pid, int up_or_down)
 {
-    if (my_selection == KP_SELECT)
-        my_Kp_value -= 1;
-    if (my_selection == KI_SELECT)
-        my_Ki_value -= 1;
-    if (my_selection == KD_SELECT)
-        my_Kd_value -= 1;
-}
-void tune_up()
-{
-    if (my_selection == KP_SELECT)
-        my_Kp_value += 1;
-    if (my_selection == KI_SELECT)
-        my_Ki_value += 1;
-    if (my_selection == KD_SELECT)
-        my_Kd_value += 1;
+    my_pid[pid] += up_or_down;
+    constrain_value_to_byte();
 }
 
-int get_form_eeprom(int address)
+int get_from_eeprom(int address)
 {
     return (EEPROM.read(address));
 }
 
-int constrain_value_to_byte(int value)
+void constrain_value_to_byte()
 {
-    return (constrain(value, BYTE_VALUE_MIN, BYTE_VALUE_MAX));
+    for (int i = 0; i <= 2; i++)
+    {
+        my_pid[i] = constrain(my_pid[i], BYTE_VALUE_MIN, BYTE_VALUE_MAX);
+    }
 }
 
 void store_values_to_eeprom()
 {
-    EEPROM.write(KP_ADDRESS, my_Kp_value);
-    EEPROM.write(KI_ADDRESS, my_Ki_value);
-    EEPROM.write(KD_ADDRESS, my_Kd_value);
+    for (int i = 0; i <= 2; i++)
+    {
+        EEPROM.write(PID_ADDRESS[i], my_pid[i]);
+    }
 }

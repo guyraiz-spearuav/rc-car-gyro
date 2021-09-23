@@ -3,7 +3,6 @@
 #include "mpu.h"
 #include "control.h"
 
-int map_to_regulated_values(int value, int min, int max);
 void steering_pin_interrupt();
 void throttle_pin_interrupt();
 void aux_pin_interrupt();
@@ -22,13 +21,6 @@ volatile bool throttle_pulse_available;
 volatile long unsigned int aux_pulse_begin;
 volatile long unsigned int aux_pulse_end;
 volatile bool aux_pulse_available;
-
-int min_sig_from_rc_steering = 1200;
-int max_sig_from_rc_steering = 1800;
-int min_sig_from_rc_throttle = 1200;
-int max_sig_from_rc_throttle = 1800;
-int min_sig_from_rc_aux = 1200;
-int max_sig_from_rc_aux = 1800;
 
 const int MID_SIG_TO_CONTROL = 1500;
 const int MIN_SIG_TO_CONTROL = 800;
@@ -86,31 +78,12 @@ void input_pwm_do()
     failsafe = true;
   else
     failsafe = false;
-  if (steering_in_value > max_sig_from_rc_steering && !failsafe)
-    max_sig_from_rc_steering = steering_in_value;
-  if (steering_in_value < min_sig_from_rc_steering && !failsafe)
-    min_sig_from_rc_steering = steering_in_value;
-  if (throttle_in_value > max_sig_from_rc_throttle && !failsafe)
-    max_sig_from_rc_throttle = throttle_in_value;
-  if (throttle_in_value < min_sig_from_rc_throttle && !failsafe)
-    min_sig_from_rc_throttle = throttle_in_value;
-  if (aux_in_value > max_sig_from_rc_aux && !failsafe)
-    max_sig_from_rc_aux = aux_in_value;
-  if (aux_in_value < min_sig_from_rc_aux && !failsafe)
-    min_sig_from_rc_aux = aux_in_value;
 
-  steering_out_value = map_to_regulated_values(steering_in_value, min_sig_from_rc_steering, max_sig_from_rc_steering);
-  throttle_out_value = map_to_regulated_values(throttle_in_value, min_sig_from_rc_throttle, max_sig_from_rc_throttle);
-  aux_out_value = map_to_regulated_values(aux_in_value, min_sig_from_rc_aux, max_sig_from_rc_aux);
+  steering_out_value = steering_in_value;
+  throttle_out_value = throttle_in_value;
+  aux_out_value = aux_in_value;
   rotational_rate = mpu_get_rate();
   pass_values_to_control(rotational_rate, steering_out_value, throttle_out_value, aux_out_value, failsafe);
-  Serial.print(aux_out_value);
-  Serial.print("   ");
-}
-
-int map_to_regulated_values(int value, int min, int max)
-{
-  return (map(value, min, max, MIN_SIG_TO_CONTROL, MAX_SIG_TO_CONTROL));
 }
 
 void steering_pin_interrupt()

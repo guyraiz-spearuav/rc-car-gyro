@@ -1,16 +1,17 @@
 #include <Arduino.h>
 #include <PID_v1.h>
 #include "control.h"
+#include "input_sbus.h"
 #include "output.h"
 
 double map_to_viable_rate_value(int value);
 double map_to_viable_pwm_value(int value);
 void control_do();
 
-const int MIN_REQUESTED_RATE = -500;
-const int MAX_REQUESTED_RATE = 500;
-const int MIN_RATE_FROM_GYRO = -500;
-const int MAX_RATE_FROM_GYRO = 500;
+const int MIN_REQUESTED_RATE = -1000;
+const int MAX_REQUESTED_RATE = 1000;
+const int MIN_RATE_FROM_GYRO = 500;
+const int MAX_RATE_FROM_GYRO = -500;
 const int MIN_PPM_DELTA = -500;
 const int MAX_PPM_DELTA = 500;
 const int MIN_INPUT_PPM_US = 800;
@@ -26,7 +27,6 @@ PID steeringPID(&input, &output, &setpoint, my_Kp, my_Ki, my_Kd, DIRECT);
 int my_rotational_rate;
 int my_steering_value;
 int my_throttle_value;
-int my_aux_value;
 bool my_control_active;
 bool my_failsafe;
 
@@ -38,7 +38,13 @@ void pass_pid_values(double Kp, double Ki, double Kd)
   my_Kp = Kp / 100;
   my_Ki = Ki / 100;
   my_Kd = Kd / 100;
+  steeringPID.SetTunings(my_Kp, my_Ki, my_Kd);
 }
+void pass_sbus_values_to_control(bool enable_ch_value)
+{
+  my_control_active = enable_ch_value;
+}
+
 void control_setup()
 {
   setpoint = 0;
@@ -52,15 +58,12 @@ void pass_values_to_control(double rotational_rate, int steering_in_value, int t
   my_rotational_rate = map_to_viable_rate_value(rotational_rate);
   my_steering_value = map_to_viable_pwm_value(steering_in_value);
   my_throttle_value = map_to_viable_pwm_value(throttle_in_value);
-  my_aux_value = aux_in_value;
-  my_failsafe = failsafe;
+  my_failsafe = failsafe || aux_in_value < 1500;
   control_do();
-  Serial.println(aux_in_value);
 }
 
 void control_do()
 {
-  my_control_active = my_aux_value > 1500;
   if (my_control_active)
   {
     input = double(my_rotational_rate);
@@ -79,6 +82,12 @@ void control_do()
     throttle_output = 0;
   }
   update_output(steering_output, throttle_output);
+      Serial.print(my_Kp);
+      Serial.print("   ");
+      Serial.print(my_Ki);
+      Serial.print("   ");
+      Serial.println(my_Kd);
+
 }
 
 double map_to_viable_rate_value(int value)

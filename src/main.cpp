@@ -5,6 +5,7 @@
 #include "control.h"
 #include "pid_tune.h"
 #include "output.h"
+#include "buzzer.h"
 
 
 void setup() {
@@ -16,6 +17,7 @@ void setup() {
   output_setup();
   pid_tune_setup();
   input_sbus_setup();
+  buzzer_setup();
 }
 
 void loop() {
