@@ -13,6 +13,7 @@ void store_values_to_eeprom();
 const int BYTE_VALUE_MIN = 0;
 const int BYTE_VALUE_MAX = 255;
 const int PID_ADDRESS[3] = {0, 1, 2};
+const int GYRO_ADDRESS = 3;
 const int PID_SELECT[3] = {0, 1, 2};
 const int TUNE_DOWN = 1;
 const int TUNE_NEUTRAL = 0;
@@ -26,13 +27,17 @@ bool my_store;
 bool store_previous;
 int my_selection;
 int my_tuning;
+int my_gyro_ch;
+int my_gyro_rate;
 long unsigned int tune_timer = 0;
+long unsigned int gyro_timer = 0;
 
-void pass_values_to_pid_tune(bool store_ch_value, int selection_ch_value, int tuning_ch_value)
+void pass_values_to_pid_tune(bool store_ch_value, int selection_ch_value, int tuning_ch_value, int gyro_ch_value)
 {
     my_store = store_ch_value;
     my_selection = selection_ch_value;
     my_tuning = tuning_ch_value;
+    my_gyro_ch = gyro_ch_value;
     pid_tune_do();
 }
 
@@ -42,17 +47,26 @@ void pid_tune_setup()
     {
         my_pid[i] = get_from_eeprom(PID_ADDRESS[i]);
     }
-    pass_pid_values(my_pid[0], my_pid[1], my_pid[2]);
+    my_gyro_rate = get_from_eeprom(GYRO_ADDRESS);
+    pass_pid_values(my_pid[0], my_pid[1], my_pid[2], my_gyro_rate);
 }
 
 void pid_tune_do()
 {
+    if (my_gyro_ch != 0)
+        gyro_timer = millis();
+    else if (millis() - gyro_timer > TUNE_TIMEOUT)
+    {
+        my_gyro_rate += my_gyro_ch;
+        constrain_value_to_byte();
+        pass_pid_values(my_pid[0], my_pid[1], my_pid[2], my_gyro_rate);
+    }
     if (my_tuning == TUNE_NEUTRAL)
         tune_timer = millis();
     else if (millis() - tune_timer > TUNE_TIMEOUT)
     {
         tune(my_selection, my_tuning);
-        pass_pid_values(my_pid[0], my_pid[1], my_pid[2]);
+        pass_pid_values(my_pid[0], my_pid[1], my_pid[2], my_gyro_rate);
         tune_timer = millis();
         buzz(SHORT, 1);
     }
@@ -83,6 +97,7 @@ void constrain_value_to_byte()
     {
         my_pid[i] = constrain(my_pid[i], BYTE_VALUE_MIN, BYTE_VALUE_MAX);
     }
+    my_gyro_rate = constrain(my_gyro_rate, BYTE_VALUE_MIN, BYTE_VALUE_MAX);
 }
 
 void store_values_to_eeprom()
@@ -91,4 +106,5 @@ void store_values_to_eeprom()
     {
         EEPROM.write(PID_ADDRESS[i], my_pid[i]);
     }
+    EEPROM.write(GYRO_ADDRESS, my_gyro_rate);
 }
