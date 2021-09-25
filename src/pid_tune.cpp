@@ -53,13 +53,15 @@ void pid_tune_setup()
 
 void pid_tune_do()
 {
-    if (my_gyro_ch != 0)
+    if (my_gyro_ch == 0)
         gyro_timer = millis();
     else if (millis() - gyro_timer > TUNE_TIMEOUT)
     {
         my_gyro_rate += my_gyro_ch;
         constrain_value_to_byte();
         pass_pid_values(my_pid[0], my_pid[1], my_pid[2], my_gyro_rate);
+        gyro_timer = millis();
+        buzz(SHORT, 1);
     }
     if (my_tuning == TUNE_NEUTRAL)
         tune_timer = millis();

@@ -38,9 +38,10 @@ void pass_pid_values(double Kp, double Ki, double Kd, int gyro)
   my_Kp = Kp / 100;
   my_Ki = Ki / 100;
   my_Kd = Kd / 100;
-  min_rate_from_gyro = gyro / 2;
-  max_rate_from_gyro = -(gyro / 2);
+  min_rate_from_gyro = gyro * 5;
+  max_rate_from_gyro = -(gyro * 5);
   steeringPID.SetTunings(my_Kp, my_Ki, my_Kd);
+  Serial.println(gyro);
 }
 void pass_sbus_values_to_control(bool enable_ch_value)
 {
@@ -84,12 +85,6 @@ void control_do()
     throttle_output = 0;
   }
   update_output(steering_output, throttle_output);
-      Serial.print(my_Kp);
-      Serial.print("   ");
-      Serial.print(my_Ki);
-      Serial.print("   ");
-      Serial.println(my_Kd);
-
 }
 
 double map_to_viable_rate_value(int value)
