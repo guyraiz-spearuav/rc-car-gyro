@@ -17,3 +17,14 @@ int mpu_get_rate()
   mpu6050.update();
   return (mpu6050.getGyroZ());
 }
+
+int mpu_get_x_accel()
+{
+  mpu6050.update();
+  return (mpu6050.getAccX());
+}
+int mpu_get_y_accel()
+{
+  mpu6050.update();
+  return (mpu6050.getAccY());
+}
